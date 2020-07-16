@@ -1,2 +1,7 @@
 .idea
 package.json
+test.json
+req.txt
+Procfile
+test_for_json.py
+API.py
