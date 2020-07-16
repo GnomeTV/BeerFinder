@@ -5,3 +5,4 @@ req.txt
 Procfile
 test_for_json.py
 API.py
+_pycache_
