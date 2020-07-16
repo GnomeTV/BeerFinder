@@ -1,9 +1,9 @@
 .idea
+.__pycache__
 package.json
 test.json
 req.txt
 Procfile
 test_for_json.py
 API.py
-_pycache_
 test.json
