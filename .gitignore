@@ -1,10 +1,8 @@
 .idea/
 __pycache__/
 venv/
-package.json
-test.json
+*.json
 req.txt
 Procfile
 test_for_json.py
 API.py
-test.json
