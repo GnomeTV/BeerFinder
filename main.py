@@ -3,31 +3,32 @@ import requests
 import json
 import API
 import re
+import datetime
 from telebot import types
 
 bot = telebot.TeleBot(API.token)
-
+def user_keyboard():
+        start_key = types.ReplyKeyboardMarkup()
+        start_key.row('Найти бар поблизости')
+        start_key.row('Оставить отзыв', 'Поставить оценку бару')
+        return start_key
 
 @bot.message_handler(commands=['start'])
 def help_com(message):
-    start_key = types.ReplyKeyboardMarkup()
-    start_key.row('Найти бар поблизости')
-    start_key.row('Оставить отзыв', 'Поставить оценку бару')
-    bot.send_message(message.from_user.id, "Выберите пункт", reply_markup=start_key)
+    bot.send_message(message.from_user.id, "Выберите пункт", reply_markup=user_keyboard())
 
 
 @bot.message_handler(content_types=['text'])
 def key_answer(message):
     if message.text == 'Найти бар поблизости':
         bot.send_message(message.chat.id, 'Не забудь ввести радиус поиска (в метрах)')
-
     elif re.match(r'\d{' + str(len(message.text)) + '}', message.text) != None:
         latitude = int(message.text) / (1000 * 111)
         longitude = int(message.text) / (1000 * 62.6)
         global part_of_requeuest
         part_of_requeuest = str(longitude) + ',' + str(latitude)
         keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-        button_geo = types.KeyboardButton(text="И где же ты?", request_location=True)
+        button_geo = types.KeyboardButton(text="Отправить местоположение", request_location=True)
         button_home = types.KeyboardButton(text="Главное меню")
         keyboard.add(button_geo)
         keyboard.add(button_home)
@@ -37,14 +38,11 @@ def key_answer(message):
         url_button = types.InlineKeyboardButton(text="Оставить отзыв в чате", url="https://t.me/beer_feedback")
         keyboard.add(url_button)
         bot.send_message(message.chat.id, "Чтобы оставить отзыв, просто ткни на кнопку!", reply_markup=keyboard)
-    elif message.text == 'Поставить оценку бару' or message.text == 'Сорта пива':
+    elif message.text == 'Поставить оценку бару':
         bot.send_message(message.chat.id, "Находится в разработке...")
         bot.send_message(message.chat.id, "Поддержи проект, чтобы мы перестали пить пиво и занялись проектом")
     elif message.text == 'Главное меню':
-        start_key = types.ReplyKeyboardMarkup()
-        start_key.row('Найти бар поблизости', 'Поставить оценку бару')
-        start_key.row('Оставить отзыв')
-        bot.send_message(message.from_user.id, "Выберите пункт", reply_markup=start_key)
+        bot.send_message(message.from_user.id, "Выберите пункт", reply_markup=user_keyboard())
     else:
         bot.send_message(message.chat.id, "Чел, не пори дичь. Го выпьем пивка 🍻")
 
@@ -62,9 +60,10 @@ def find_bar(message):
         js_bars = response.text
         js_bars = json.loads(js_bars)
         cord = str(message.location.latitude) + ',' + str(message.location.longitude)
-        print(user_name)
-        print(req)
-        if js_bars['features'] != 0:
+        file = open('logfile.txt','w')
+        file.write('Date: ' + str(datetime.datetime.today()) + '  User: ' + user_name + '\n' + 'Link: ' + req + '\n')
+        file.close()
+        if len(js_bars['features']) != 0:
             for i in range(0, len(js_bars['features'])):
                 bar_stat = ''
                 bar_hours = ''
@@ -83,7 +82,6 @@ def find_bar(message):
                     bar_stat += bar_link + '\n'
                 except:
                     bar_link = 'Ссыка на сайт бара не указана'
-                print('Перед котигориями i = ' + str(i))
                 try:
                     for j in range(0, len(js_bars['features'][i]['properties']['CompanyMetaData']['Categories'])):
                         bar_category += js_bars['features'][i]['properties']['CompanyMetaData']['Categories'][j][
@@ -96,7 +94,6 @@ def find_bar(message):
                 bot.send_message(message.from_user.id, str(bar_stat))
                 lat = js_bars['features'][i]['geometry']['coordinates'][1]
                 lng = js_bars['features'][i]['geometry']['coordinates'][0]
-                print(float(lat), ' , ', float(lng))
                 bot.send_venue(message.chat.id, latitude=float(lat), longitude=float(lng), title=bar_name,
                                address=bar_address)
         else:
