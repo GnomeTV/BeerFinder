@@ -6,3 +6,5 @@ req.txt
 Procfile
 test_for_json.py
 API.py
+test.py
+logfile.txt
